@@ -1,5 +1,6 @@
-package storage
+package repository
 
+/*
 import (
 	"database/sql"
 
@@ -10,3 +11,4 @@ type Storage struct {
 	db           *sql.DB
 	queryBuilder squirrel.StatementBuilderType
 }
+*/

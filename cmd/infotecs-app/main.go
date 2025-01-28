@@ -1,17 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/kiryshaaaa/infotecs-app/internal/routers"
-	"github.com/kiryshaaaa/infotecs-app/internal/service"
+	"github.com/kiryshaaaa/infotecs-app/internal/transport"
 )
 
 func main() {
-	service := service.NewService()
-	router := routers.NewRouter(service)
-	router.GetHelloWorld()
-	fmt.Println("Hello World")
+	//service := transport.NewService()
+	router := transport.NewRouter()
 	http.ListenAndServe(":8080", router.Router)
 }
