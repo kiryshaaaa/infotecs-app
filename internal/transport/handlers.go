@@ -1,30 +1,69 @@
 package transport
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
+
 	//"log"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi"
+	"github.com/kiryshaaaa/infotecs-app/internal/dto"
 )
 
-func (s *APIHandlers) MyHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, World!"))
-}
+func (h *APIHandlers) GetLastHandler(w http.ResponseWriter, r *http.Request) {
+	countParam := r.URL.Query().Get("count")
 
-func (s *APIHandlers) GetLastHandler(w http.ResponseWriter, r *http.Request) {
-	// Получаем значение строки запроса count
-	countParam := r.URL.Query().Get("count") // api/transactions?count=7
-	//log.Fatal(countParam)
-
-	// Пытаемся преобразовать в число (опционально)
 	count, err := strconv.Atoi(countParam)
 	if err != nil || count <= 0 {
 		http.Error(w, "Invalid count parameter", http.StatusBadRequest)
 		return
 	}
 
-	// Обработка логики (в данном случае просто ответ)
-	fmt.Println(countParam)
-	w.Write([]byte(fmt.Sprintf("Fetching %d transactions\n", count)))
+	transactions, err := h.transactionService.GetLastN(count)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(transactions)
+}
+
+func (h *APIHandlers) GetBalanceHandler(w http.ResponseWriter, r *http.Request) {
+	address := chi.URLParam(r, "address")
+	log.Printf("Extracted address: %s", address)
+
+	response, err := h.walletService.GetBalance(address)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *APIHandlers) SendHandler(w http.ResponseWriter, r *http.Request) {
+	var req dto.SendRequestDTO
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.FromWallet == "" || req.ToWallet == "" || req.Amount <= 0 {
+		http.Error(w, "Invalid input data", http.StatusBadRequest)
+		return
+	}
+
+	err := h.transactionService.Send(req.FromWallet, req.ToWallet, req.Amount)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Transaction successful"}`))
 }
