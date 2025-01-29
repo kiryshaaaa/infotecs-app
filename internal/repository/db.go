@@ -53,3 +53,13 @@ func NewStorage() (*Storage, error) {
 
 	return storage, nil
 }
+
+func (s *Storage) Close() error {
+	if s.db != nil {
+		err := s.db.Close()
+		if err != nil {
+			return fmt.Errorf("failed to close database connection: %w", err)
+		}
+	}
+	return nil
+}

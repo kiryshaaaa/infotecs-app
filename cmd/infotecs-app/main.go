@@ -14,6 +14,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer func() {
+		if err := dbStorage.Close(); err != nil {
+			log.Fatalf("Failed to close database connection: %v", err)
+		}
+	}()
 
 	transactionService := services.NewTransactionService(dbStorage)
 	walletService := services.NewWalletService(dbStorage)
