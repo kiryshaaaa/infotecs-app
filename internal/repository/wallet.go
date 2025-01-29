@@ -97,30 +97,3 @@ func (s *Storage) GetBalance(address string) (float64, error) {
 	}
 	return balance, nil
 }
-
-func (s *Storage) UpdateBalance(address string, amount float64) error {
-	query, args, err := s.psql.
-		Update("wallets").
-		Set("balance", squirrel.Expr("balance + ?", amount)).
-		Where(squirrel.Eq{"address": address}).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("failed to build update query: %w", err)
-	}
-
-	result, err := s.db.Exec(query, args...)
-	if err != nil {
-		return fmt.Errorf("failed to update balance: %w", err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("wallet not found")
-	}
-
-	return nil
-}

@@ -43,31 +43,9 @@ func (s *TransactionService) Send(from, to string, amount float64) error {
 		return fmt.Errorf("sender and recipient cannot be the same")
 	}
 
-	senderBalance, err := s.repo.GetBalance(from)
+	err := s.repo.TransferFunds(from, to, amount)
 	if err != nil {
-		return fmt.Errorf("failed to get sender balance: %w", err)
-	}
-
-	if senderBalance < amount {
-		return fmt.Errorf("insufficient funds")
-	}
-
-	err = s.repo.UpdateBalance(from, -amount)
-	if err != nil {
-		return fmt.Errorf("failed to update sender balance: %w", err)
-	}
-
-	err = s.repo.UpdateBalance(to, amount)
-	if err != nil {
-		_ = s.repo.UpdateBalance(from, amount)
-		return fmt.Errorf("failed to update recipient balance: %w", err)
-	}
-
-	err = s.repo.InsertTransaction(from, to, amount)
-	if err != nil {
-		_ = s.repo.UpdateBalance(from, amount)
-		_ = s.repo.UpdateBalance(to, -amount)
-		return fmt.Errorf("failed to insert transaction: %w", err)
+		return fmt.Errorf("failed to perform transaction: %w", err)
 	}
 
 	log.Printf("Transferred %.2f from %s to %s", amount, from, to)
