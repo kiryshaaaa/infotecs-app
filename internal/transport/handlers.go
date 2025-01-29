@@ -3,12 +3,10 @@ package transport
 import (
 	"encoding/json"
 	"log"
-
-	//"log"
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/kiryshaaaa/infotecs-app/internal/dto"
 )
 
